@@ -9,7 +9,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "https://code-collab-frontend-b6vcnfjf1-siddharth-s-projects-3f94c1f4.vercel.app", // Your frontend address
+    origin: "http://localhost:5173", // Your frontend address
   },
 });
 
