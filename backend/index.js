@@ -106,6 +106,10 @@ io.on("connection", (socket) => {
 
 const port = 5000;
 
+app.get("/", (req, res)=> {
+    res.send("Hello World");
+})
+
 // const __dirname = path.resolve();
 
 // app.use(express.static(path.join(__dirname, "/frontend/dist"))); // Serve the frontend
