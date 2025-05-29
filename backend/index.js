@@ -104,15 +104,15 @@ io.on("connection", (socket) => {
   });
 });
 
-const port = process.env.PORT || 5000;
+const port = 5000;
 
-const __dirname = path.resolve();
+// const __dirname = path.resolve();
 
-app.use(express.static(path.join(__dirname, "/frontend/dist"))); // Serve the frontend
+// app.use(express.static(path.join(__dirname, "/frontend/dist"))); // Serve the frontend
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-});
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+// });
 
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
