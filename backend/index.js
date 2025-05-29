@@ -9,8 +9,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    // origin: "http://localhost:5173", // Your frontend address
-    origin: "https://code-collab-1-ursc.onrender.com",
+    origin: "http://localhost:5173", // Your frontend address
+    // origin: "https://code-collab-1-ursc.onrender.com",
   },
 });
 
