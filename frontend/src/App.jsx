@@ -5,7 +5,8 @@ import Sidebar from "./components/Sidebar";
 import EditorHeader from "./components/EditorHeader";
 import EditorArea from "./components/EditorArea";
 
-const socket = io("http://localhost:5000");
+// const socket = io("http://localhost:5000");
+const socket = io("https://code-collab-1sen.onrender.com/");
 
 const App = () => {
   const [joined, setJoined] = useState(false);
