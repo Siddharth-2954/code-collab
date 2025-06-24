@@ -20,6 +20,8 @@ const EditorHeader = ({
   setDrawingSize,
   isSaving,
   toggleDarkMode,
+  clearCanvas,
+  saveCanvas,
 }) => {
   return (
     <div className={`${darkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-800 border-gray-200'} flex items-center justify-between px-4 py-2 border-b`}>
@@ -129,7 +131,7 @@ const EditorHeader = ({
                   <option value="10">Extra Thick</option>
                 </select>
                 <button
-                  onClick={() => {}} // Placeholder for clearCanvas (moved to EditorArea)
+                  onClick={clearCanvas}
                   className={`p-2 rounded-md ${
                     darkMode
                       ? 'bg-gray-700 text-gray-300 hover:text-white'
@@ -140,7 +142,7 @@ const EditorHeader = ({
                   <Trash2 className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => {}} // Placeholder for saveCanvas (moved to EditorArea)
+                  onClick={saveCanvas}
                   className={`p-2 rounded-md ${
                     darkMode
                       ? 'bg-gray-700 text-gray-300 hover:text-white'

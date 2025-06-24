@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import Editor from "@monaco-editor/react";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-const EditorArea = ({
+const EditorArea = forwardRef(({
   darkMode,
   activeEditor,
   language,
@@ -26,12 +26,40 @@ const EditorArea = ({
   roomId,
   socket,
   isInitialLoad,
-}) => {
+  setIsSaving,
+}, ref) => {
   const quillRef = useRef(null);
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
   const canvasContainerRef = useRef(null);
   const currentLineRef = useRef(null);
+
+  // Expose canvas functions to parent component
+  useImperativeHandle(ref, () => ({
+    clearCanvas: () => {
+      if (contextRef.current && canvasRef.current) {
+        contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        setDrawingData([]);
+        socket.emit("drawingChange", { roomId, drawingData: [] });
+      }
+    },
+    saveCanvas: () => {
+      if (canvasRef.current) {
+        setIsSaving(true);
+        try {
+          const canvas = canvasRef.current;
+          const link = document.createElement('a');
+          link.download = `whiteboard-${roomId}-${new Date().toISOString().slice(0, 10)}.png`;
+          link.href = canvas.toDataURL();
+          link.click();
+        } catch (error) {
+          console.error('Error saving canvas:', error);
+        } finally {
+          setTimeout(() => setIsSaving(false), 1000);
+        }
+      }
+    }
+  }));
 
   useEffect(() => {
     if (activeEditor === 'whiteboard' && whiteboardMode === 'draw' && canvasRef.current) {
@@ -235,6 +263,6 @@ const EditorArea = ({
       )}
     </div>
   );
-};
+});
 
 export default EditorArea;
