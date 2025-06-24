@@ -36,7 +36,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Update for frontend origin
+    // origin: "http://localhost:5173", // Update for frontend origin
+    origin: "https://code-collab-1-ursc.onrender.com",
     methods: ["GET", "POST"],
     credentials: true,
   },
