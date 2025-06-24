@@ -20,7 +20,8 @@ connectDB();
 
 // Add CORS middleware for HTTP requests
 app.use(cors({
-  origin: "http://localhost:5173", // Your frontend URL
+  // origin: "http://localhost:5173", // Your frontend URL
+  origin: "https://code-collab-1-ursc.onrender.com",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));

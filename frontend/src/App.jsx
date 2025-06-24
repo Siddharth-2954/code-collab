@@ -12,9 +12,8 @@ import EditorArea from "./components/EditorArea";
 import { useRef } from 'react';
 
 // Dynamic API URL configuration
-const API_BASE_URL = 
-// "https://code-collab-1sen.onrender.com" 
- "http://localhost:5000";
+const API_BASE_URL = "https://code-collab-1sen.onrender.com";
+//  "http://localhost:5000";
 
 const socket = io(API_BASE_URL);
 
