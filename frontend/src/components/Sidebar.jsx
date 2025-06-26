@@ -30,8 +30,9 @@ const Sidebar = ({
     <div
       className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg flex flex-col transition-all duration-300 ${
         sidebarOpen ? "w-72" : "w-0"
-      } overflow-hidden`}
+      } overflow-hidden h-screen`}
     >
+      {/* Header */}
       <div className={`p-4 flex items-center justify-between border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <div className="flex items-center">
           <div className={`p-2 rounded-md ${darkMode ? 'bg-blue-600' : 'bg-blue-100'}`}>
@@ -47,6 +48,7 @@ const Sidebar = ({
         </button>
       </div>
 
+      {/* Tabs */}
       <div className={`flex border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <button
           className={`flex-1 py-3 ${
@@ -83,111 +85,118 @@ const Sidebar = ({
         </button>
       </div>
 
-      {activeTab === "users" && (
-        <div className="flex-1 overflow-y-auto p-4">
-          <h3 className={`font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Room: {roomId}
-          </h3>
-          <div className="space-y-2">
-            {users.map((user) => (
-              <div
-                key={user}
-                className={`flex items-center p-2 rounded-md ${
-                  user === userName
-                    ? darkMode ? 'bg-gray-700' : 'bg-blue-50'
-                    : darkMode ? 'bg-gray-800' : 'bg-white'
-                }`}
-              >
-                <div className={`h-8 w-8 rounded-full ${getColorForUser(user)} flex items-center justify-center text-white font-medium`}>
-                  {user.charAt(0).toUpperCase()}
+      {/* Content Section */}
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === "users" && (
+          <div className="p-4">
+            <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Room: {roomId}
+            </h3>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {users.length} {users.length === 1 ? "person" : "people"} in the room
+            </p>
+            <div className="space-y-2 mt-3">
+              {users.map((user) => (
+                <div
+                  key={user}
+                  className={`flex items-center p-2 rounded-md ${
+                    user === userName
+                      ? darkMode ? 'bg-gray-700' : 'bg-blue-50'
+                      : darkMode ? 'bg-gray-800' : 'bg-white'
+                  }`}
+                >
+                  <div className={`h-8 w-8 rounded-full ${getColorForUser(user)} flex items-center justify-center text-white font-medium`}>
+                    {user.charAt(0).toUpperCase()}
+                  </div>
+                  <span className={`ml-2 ${user === userName ? 'font-semibold' : ''}`}>
+                    {user} {user === userName && "(You)"}
+                  </span>
                 </div>
-                <span className={`ml-2 ${user === userName ? 'font-semibold' : ''}`}>
-                  {user} {user === userName && "(You)"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === "chat" && (
-        <div className="flex flex-col h-full">
-          <div id="chat-messages" className="flex-1 overflow-y-auto p-3 space-y-3">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`${
-                  msg.sender === "system"
-                    ? "text-center my-2"
-                    : msg.sender === userName
-                    ? "flex justify-end"
-                    : "flex justify-start"
-                }`}
-              >
-                {msg.sender === "system" ? (
-                  <div className={`inline-block px-3 py-1 rounded-md text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>
-                    {msg.text}
-                  </div>
-                ) : (
-                  <div
-                    className={`max-w-[80%] rounded-lg px-3 py-2 ${
-                      msg.sender === userName
-                        ? darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
-                        : darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
-                    }`}
-                  >
-                    {msg.sender !== userName && (
-                      <div className="font-semibold text-xs mb-1">
-                        {msg.sender}
-                      </div>
-                    )}
-                    <p className="break-words">{msg.text}</p>
-                    <div className="text-xs opacity-70 text-right mt-1">
-                      {formatTime(msg.timestamp)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-            {typing && (
-              <div className={`text-xs italic ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                {typing}
-              </div>
-            )}
-          </div>
-          <div className={`p-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <div className="flex">
-              <input
-                type="text"
-                className={`flex-1 px-3 py-2 rounded-l-md border focus:outline-none focus:ring-1 ${
-                  darkMode
-                    ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-500'
-                    : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
-                }`}
-                placeholder="Type a message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleMessageSend()}
-              />
-              <button
-                className={`px-3 py-2 rounded-r-md ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
-                onClick={handleMessageSend}
-              >
-                <Send className="h-5 w-5" />
-              </button>
+              ))}
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className={`p-3 mt-auto border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+        {activeTab === "chat" && (
+          <div className="flex flex-col h-full">
+            <div id="chat-messages" className="flex-1 overflow-y-auto p-3 space-y-3">
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`${
+                    msg.sender === "system"
+                      ? "text-center my-2"
+                      : msg.sender === userName
+                      ? "flex justify-end"
+                      : "flex justify-start"
+                  }`}
+                >
+                  {msg.sender === "system" ? (
+                    <div className={`inline-block px-3 py-1 rounded-md text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>
+                      {msg.text}
+                    </div>
+                  ) : (
+                    <div
+                      className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                        msg.sender === userName
+                          ? darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                          : darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
+                      }`}
+                    >
+                      {msg.sender !== userName && (
+                        <div className="font-semibold text-xs mb-1">
+                          {msg.sender}
+                        </div>
+                      )}
+                      <p className="break-words">{msg.text}</p>
+                      <div className="text-xs opacity-70 text-right mt-1">
+                        {formatTime(msg.timestamp)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {typing && (
+                <div className={`text-xs italic ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {typing}
+                </div>
+              )}
+            </div>
+            <div className={`p-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className="flex">
+                <input
+                  type="text"
+                  className={`flex-1 px-3 py-2 rounded-l-md border focus:outline-none focus:ring-1 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-500'
+                      : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+                  }`}
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleMessageSend()}
+                />
+                <button
+                  className={`px-3 py-2 rounded-r-md ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+                  onClick={handleMessageSend}
+                >
+                  <Send className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Leave Room Button */}
+      <div className={`p-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <button
           onClick={leaveRoom}
-          className={`w-full flex items-center justify-center px-4 py-2 rounded-md ${
+          className={`w-full px-4 py-2 rounded-md ${
             darkMode
               ? 'bg-red-800 hover:bg-red-900 text-white'
               : 'bg-red-500 hover:bg-red-600 text-white'
-          }`}
+          } flex items-center justify-center`}
         >
           <LogOut className="h-4 w-4 mr-2" />
           Leave Room

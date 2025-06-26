@@ -45,6 +45,8 @@ const io = new Server(server, {
 
 const rooms = new Map();
 
+const roomMessages = new Map(); // Store messages per room
+
 io.on("connection", (socket) => {
   console.log("User Connected:", socket.id);
 
@@ -87,6 +89,10 @@ io.on("connection", (socket) => {
 
       // Emit progress to the current user
       socket.emit("progressFetched", progress);
+
+        // Send chat history to the user
+      const chatHistory = roomMessages.get(roomId) || [];
+      socket.emit("chatHistory", chatHistory);
 
     } catch (err) {
       console.error("Error fetching or creating progress:", err);
@@ -151,6 +157,39 @@ io.on("connection", (socket) => {
       console.error("Failed to save cursor position:", err);
     }
   });
+
+  socket.on("sendMessage", async ({ roomId, message }) => {
+    console.log(`Message from ${message.sender} in room ${roomId}:`, message.text);
+    
+    // Store message in room messages
+    if (!roomMessages.has(roomId)) {
+      roomMessages.set(roomId, []);
+    }
+    
+    const messages = roomMessages.get(roomId);
+    messages.push(message);
+    
+    // Keep only last 100 messages per room to avoid memory issues
+    if (messages.length > 100) {
+      messages.splice(0, messages.length - 100);
+    }
+    
+    roomMessages.set(roomId, messages);
+    
+    // Save messages to all users' progress in this room
+    try {
+      await Progress.updateMany(
+        { roomId },
+        { $set: { chatMessages: messages } }
+      );
+    } catch (err) {
+      console.error("Failed to save chat messages:", err);
+    }
+    
+    // Broadcast message to all users in the room
+    io.to(roomId).emit("chatMessage", message);
+  });
+
 
   // Handle leaving a room
   socket.on("leaveRoom", () => {

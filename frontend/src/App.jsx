@@ -13,7 +13,7 @@ import { useRef } from 'react';
 
 // Dynamic API URL configuration
 const API_BASE_URL = "https://code-collab-1sen.onrender.com";
-//  "http://localhost:5000";
+// const API_BASE_URL = "http://localhost:5000";
 
 const socket = io(API_BASE_URL);
 
@@ -140,48 +140,54 @@ const saveCanvas = () => {
   };
 
   const fetchProgress = async () => {
-    if (!roomId || !userName) return;
-    
-    try {
-      const data = await makeApiCall(`${API_BASE_URL}/progress/${roomId}/${userName}`);
-      
-      if (data) {
-        setCode(data.code || "// start code here");
-        setWhiteboardData(data.whiteboardContent || "");
-        setDrawingData(data.drawingData || []);
-        setCollaboratorCursors(prev => ({
-          ...prev,
-          [userName]: data.cursorPosition || { x: 0, y: 0, lastUpdated: Date.now() }
-        }));
-        setIsInitialLoad(false);
-        showNotification("Progress loaded successfully");
-      } else {
-        showNotification("No previous progress found");
-        setIsInitialLoad(false);
-      }
-    } catch (err) {
-      console.error("Failed to fetch progress:", err);
-      showNotification("Failed to load progress - using defaults");
+  if (!roomId || !userName) return;
+
+  try {
+    const data = await makeApiCall(`${API_BASE_URL}/progress/${roomId}/${userName}`);
+
+    if (data) {
+      setCode(data.code || "// start code here");
+      setWhiteboardData(data.whiteboardContent || "");
+      setDrawingData(data.drawingData || []);
+      setCollaboratorCursors(prev => ({
+        ...prev,
+        [userName]: data.cursorPosition || { x: 0, y: 0, lastUpdated: Date.now() }
+      }));
+      setMessages(data.chatMessages || []); // Set chat messages
+      setIsInitialLoad(false);
+      showNotification("Progress loaded successfully");
+    } else {
+      showNotification("No previous progress found");
       setIsInitialLoad(false);
     }
-  };
+  } catch (err) {
+    console.error("Failed to fetch progress:", err);
+    showNotification("Failed to load progress - using defaults");
+    setIsInitialLoad(false);
+  }
+};
+
 
   const saveProgress = async (progressData) => {
-    if (!progressData.roomId || !progressData.userName) return;
-    
-    try {
-      setIsSaving(true);
-      await makeApiCall(`${API_BASE_URL}/progress/save`, {
-        method: "POST",
-        body: JSON.stringify(progressData),
-      });
-      console.log("Progress saved successfully");
-    } catch (err) {
-      console.error("Error saving progress:", err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  if (!progressData.roomId || !progressData.userName) return;
+
+  try {
+    setIsSaving(true);
+    await makeApiCall(`${API_BASE_URL}/progress/save`, {
+      method: "POST",
+      body: JSON.stringify({
+        ...progressData,
+        chatMessages: messages, // Include chat messages in save
+      }),
+    });
+    console.log("Progress saved successfully");
+  } catch (err) {
+    console.error("Error saving progress:", err);
+  } finally {
+    setIsSaving(false);
+  }
+};
+
 
   // Persist state to session storage
   const persistState = (key, value) => {
