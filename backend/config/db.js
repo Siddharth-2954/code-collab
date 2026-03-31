@@ -2,15 +2,15 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGO_URI; // Update with your MongoDB URI
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log("MongoDB connected");
+    const mongoURI = process.env.MONGO_URI;
+    await mongoose.connect(mongoURI);
+    console.log("MongoDB connected successfully");
   } catch (err) {
     console.error("MongoDB connection error:", err);
-    process.exit(1);
+    console.error("Please verify:");
+    console.error("1. MongoDB Atlas credentials are correct");
+    console.error("2. IP address is whitelisted in MongoDB Atlas");
+    console.error("3. Connection string includes the database name");
   }
 };
 

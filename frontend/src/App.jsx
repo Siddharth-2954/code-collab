@@ -12,8 +12,8 @@ import EditorArea from "./components/EditorArea";
 import { useRef } from 'react';
 
 // Dynamic API URL configuration
-const API_BASE_URL = "https://code-collab-1sen.onrender.com";
-// const API_BASE_URL = "http://localhost:5000";
+// const API_BASE_URL = "https://code-collab-1sen.onrender.com";
+const API_BASE_URL = "http://localhost:5000";
 
 const socket = io(API_BASE_URL);
 
@@ -227,18 +227,54 @@ const saveCanvas = () => {
       showNotification("Connection lost. Attempting to reconnect...");
     });
 
-    socket.on("userJoined", (users) => {
+    socket.on("userJoined", (data) => {
+      // Handle both old array format and new object format
+      let users, count;
+      if (Array.isArray(data)) {
+        users = data;
+        count = data.length;
+      } else {
+        users = data.users || [];
+        count = data.count || users.length;
+      }
+      
       setUsers(users);
-      if (joined && users.length > 1) {
-        const newUser = users[users.length - 1];
-        if (newUser !== userName) {
-          showNotification(`${newUser} joined the room`);
-          setMessages((prev) => [...prev, {
-            sender: "system",
-            text: `${newUser} joined the room`,
-            timestamp: new Date().toISOString(),
-          }]);
+      
+      // Show notification for new users
+      if (joined && users.length > 1 && data.message) {
+        if (!data.message.toLowerCase().includes(userName.toLowerCase())) {
+          showNotification(data.message);
+          if (data.message.includes("joined")) {
+            setMessages((prev) => [...prev, {
+              sender: "system",
+              text: data.message,
+              timestamp: new Date().toISOString(),
+            }]);
+          }
         }
+      }
+      
+      console.log(`Room updated: ${count} people in room`);
+    });
+
+    socket.on("chatHistory", (chatHistory) => {
+      console.log("Received chat history:", chatHistory);
+      setMessages(chatHistory || []);
+    });
+
+    socket.on("progressFetched", (progress) => {
+      console.log("Progress fetched:", progress);
+      if (progress && progress.code) {
+        setCode(progress.code || "// start code here");
+      }
+      if (progress && progress.whiteboardContent) {
+        setWhiteboardData(progress.whiteboardContent);
+      }
+      if (progress && progress.drawingData) {
+        setDrawingData(progress.drawingData);
+      }
+      if (progress && progress.chatMessages) {
+        setMessages(progress.chatMessages);
       }
     });
 
@@ -312,6 +348,8 @@ const saveCanvas = () => {
       socket.off("connect");
       socket.off("disconnect");
       socket.off("userJoined");
+      socket.off("chatHistory");
+      socket.off("progressFetched");
       socket.off("codeUpdate");
       socket.off("userTyping");
       socket.off("languageUpdate");

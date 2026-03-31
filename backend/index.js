@@ -20,8 +20,8 @@ connectDB();
 
 // Add CORS middleware for HTTP requests
 app.use(cors({
-  // origin: "http://localhost:5173", // Your frontend URL
-  origin: "https://code-collab-1-ursc.onrender.com",
+  origin: "http://localhost:5173", // Your frontend URL
+  // origin: "https://code-collab-1-ursc.onrender.com",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
@@ -36,8 +36,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    // origin: "http://localhost:5173", // Update for frontend origin
-    origin: "https://code-collab-1-ursc.onrender.com",
+    origin: "http://localhost:5173", // Update for frontend origin
+    // origin: "https://code-collab-1-ursc.onrender.com",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -58,7 +58,12 @@ io.on("connection", (socket) => {
     if (currentRoom) {
       socket.leave(currentRoom);
       rooms.get(currentRoom)?.delete(currentUser);
-      io.to(currentRoom).emit("userJoined", Array.from(rooms.get(currentRoom) || []));
+      const userList = Array.from(rooms.get(currentRoom) || []);
+      const userCount = userList.length;
+      io.to(currentRoom).emit("userJoined", {
+        users: userList,
+        count: userCount,
+      });
     }
 
     currentRoom = roomId;
@@ -83,6 +88,7 @@ io.on("connection", (socket) => {
           whiteboardContent: "",
           drawingData: [],
           cursorPosition: { x: 0, y: 0 },
+          chatMessages: [],
         });
         console.log(`Default progress created for ${userName} in room ${roomId}`);
       }
@@ -90,16 +96,40 @@ io.on("connection", (socket) => {
       // Emit progress to the current user
       socket.emit("progressFetched", progress);
 
-        // Send chat history to the user
-      const chatHistory = roomMessages.get(roomId) || [];
+      // Get chat history from database (from any user's progress for this room)
+      let chatHistory = [];
+      try {
+        const anyUserProgress = await Progress.findOne({ roomId });
+        if (anyUserProgress && anyUserProgress.chatMessages) {
+          chatHistory = anyUserProgress.chatMessages;
+        }
+      } catch (err) {
+        console.error("Error fetching chat history from DB:", err);
+        chatHistory = roomMessages.get(roomId) || [];
+      }
+      
+      // Send chat history to the user
       socket.emit("chatHistory", chatHistory);
+      
+      // Update in-memory room messages
+      if (!roomMessages.has(roomId)) {
+        roomMessages.set(roomId, chatHistory);
+      }
 
     } catch (err) {
       console.error("Error fetching or creating progress:", err);
     }
 
-    // Notify other users in the room
-    io.to(roomId).emit("userJoined", Array.from(rooms.get(roomId) || []));
+    // Notify all users in the room (including the newly joined user)
+    const userList = Array.from(rooms.get(roomId) || []);
+    const userCount = userList.length;
+    io.to(roomId).emit("userJoined", {
+      users: userList,
+      count: userCount,
+      message: `${userName} joined the room`
+    });
+    
+    console.log(`Room ${roomId} now has ${userCount} people: ${Array.from(userList).join(", ")}`);
   });
 
   // Handle code change
@@ -195,8 +225,15 @@ io.on("connection", (socket) => {
   socket.on("leaveRoom", () => {
     if (currentRoom && currentUser) {
       rooms.get(currentRoom)?.delete(currentUser);
-      io.to(currentRoom).emit("userJoined", Array.from(rooms.get(currentRoom) || []));
+      const userList = Array.from(rooms.get(currentRoom) || []);
+      const userCount = userList.length;
+      io.to(currentRoom).emit("userJoined", {
+        users: userList,
+        count: userCount,
+        message: `${currentUser} left the room`
+      });
       io.to(currentRoom).emit("userLeft", currentUser);
+      console.log(`Room ${currentRoom} now has ${userCount} people`);
 
       socket.leave(currentRoom);
       currentRoom = null;
@@ -208,10 +245,16 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     if (currentRoom && currentUser) {
       rooms.get(currentRoom)?.delete(currentUser);
-      io.to(currentRoom).emit("userJoined", Array.from(rooms.get(currentRoom) || []));
+      const userList = Array.from(rooms.get(currentRoom) || []);
+      const userCount = userList.length;
+      io.to(currentRoom).emit("userJoined", {
+        users: userList,
+        count: userCount,
+        message: `${currentUser} disconnected`
+      });
       io.to(currentRoom).emit("userLeft", currentUser);
+      console.log(`User Disconnected: ${socket.id}. Room ${currentRoom} now has ${userCount} people`);
     }
-    console.log("User Disconnected:", socket.id);
   });
 });
 
